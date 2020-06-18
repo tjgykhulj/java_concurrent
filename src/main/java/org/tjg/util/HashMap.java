@@ -1,4 +1,4 @@
-package org.tjg.concurrent;
+package org.tjg.util;
 
 import java.util.Collection;
 import java.util.Map;
@@ -180,7 +180,7 @@ public class HashMap<K,V> implements Map<K,V> {
         table = new Node[newCap];
         /*
          * TODO can be designed as zero-memory-alloc version
-         * @see java.util.HashMap#resize()
+         * @see java.HashMap#resize()
           */
         for (Node<K,V> node: old) {
             for (Node<K,V> i = node; i != null; i = i.next) {

@@ -1,4 +1,4 @@
-package org.tjg.concurrent;
+package org.tjg.util.concurrent;
 
 
 public class ConcurrentHashMap<K,V>  {
