@@ -13,7 +13,11 @@ public class ReentrantLock implements Lock {
     private final NonfairSync sync;
 
     public ReentrantLock() {
-        sync = new NonfairSync();
+        this(false);
+    }
+
+    public ReentrantLock(boolean fair) {
+        sync = fair? new FairSync(): new NonfairSync();
     }
 
     @Override
@@ -71,9 +75,6 @@ public class ReentrantLock implements Lock {
 
         @Override
         protected boolean tryAcquire(int arg) {
-            if (arg < 0) {
-                throw new IllegalMonitorStateException();
-            }
             Thread thread = Thread.currentThread();
             int state = getState();
             if (state == 0) {
@@ -90,9 +91,6 @@ public class ReentrantLock implements Lock {
 
         @Override
         protected boolean tryRelease(int arg) {
-            if (arg < 0) {
-                throw new IllegalMonitorStateException();
-            }
             if (getExclusiveOwnerThread() != Thread.currentThread()) {
                 throw new IllegalMonitorStateException("try to release a lock which not held by self");
             }
@@ -111,6 +109,30 @@ public class ReentrantLock implements Lock {
             // While we must in general read state before owner,
             // we don't need to do so to check if current thread is owner
             return getExclusiveOwnerThread() == Thread.currentThread();
+        }
+    }
+
+    private class FairSync extends NonfairSync {
+
+        @Override
+        void lock() {
+            acquire(1);
+        }
+
+        @Override
+        protected boolean tryAcquire(int arg) {
+            Thread thread = Thread.currentThread();
+            int state = getState();
+            if (state == 0) {
+                if (!hasQueuedPredecessors() && compareAndSetState(0, arg)) {
+                    setExclusiveOwnerThread(thread);
+                    return true;
+                }
+            } else if (getExclusiveOwnerThread() == thread) {
+                setState(state + arg);
+                return true;
+            }
+            return false;
         }
     }
 }
